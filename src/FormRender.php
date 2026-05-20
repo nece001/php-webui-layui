@@ -66,20 +66,20 @@ class FormRender extends Render
 
             $ctl = $this->renderHtml('div.layui-input-inline', [], $ctl);
 
-            $tags = [];
             $label = $control->getConfig('label', '');
             if ($label) {
-                $tags[] = $this->renderHtml('label.layui-form-label', ['for' => $control->getId()], $label);
+                $nodes[] = $this->renderHtml('label.layui-form-label', ['for' => $control->getId()], $label);
             }
 
-            $tags[] = $ctl;
+            $nodes[] = $ctl;
 
-            $inline = $this->renderHtml('div.layui-inline', [], $tags);
-
-            $nodes[] = $inline;
+            $separator = $control->getConfig('separator', '');
+            if ($separator) {
+                $nodes[] = $this->renderHtml('div.layui-form-mid', [], $separator);
+            }
         }
 
-        return $this->renderHtml('div.layui-form-item', $this->component->getAttributes(), $nodes);
+        return $this->renderHtml('div.layui-form-item > div.layui-inline', [], $nodes);
     }
 
     private function renderControlPend($control, string $ctl): string
