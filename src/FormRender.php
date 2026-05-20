@@ -54,8 +54,10 @@ class FormRender extends Render
 
     private function renderInlineControls(array $controls): string
     {
+        $form_inline_id = 'form_inline_id_' . uniqid();
         $nodes = [];
         foreach ($controls as $control) {
+            $control->setAncestorId($form_inline_id);
             $ctl = $this->getRender($control)->render();
             $ctl = $this->renderControlPend($control, $ctl);
 
@@ -79,7 +81,7 @@ class FormRender extends Render
             }
         }
 
-        return $this->renderHtml('div.layui-form-item > div.layui-inline', [], $nodes);
+        return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
     }
 
     private function renderControlPend($control, string $ctl): string
