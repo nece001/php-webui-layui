@@ -28,7 +28,7 @@ class ColorPickerRender extends Render
             'predefine' => $this->component->getConfig('predefine'),
             'colors' => $this->component->getConfig('colors'),
             'size' => $this->component->getConfig('size'),
-            'change' => $this->component->getConfig('change'),
+            'change' => $this->component->getConfig('on_change'),
             'done' => $this->component->getConfig('done'),
             'cancel' => $this->component->getConfig('cancel'),
             'close' => $this->component->getConfig('close'),

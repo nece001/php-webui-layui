@@ -54,7 +54,7 @@ class DropdownRender extends Render
             'clickScope' => $this->component->getConfig('click_scope'),
             'customName' => $this->component->getConfig('custom_name'),
             'ready' => $this->component->getConfig('ready'),
-            'click' => $this->component->getConfig('click'),
+            'click' => $this->component->getConfig('on_click'),
             'close' => $this->component->getConfig('close'),
             'onClickOutside' => $this->component->getConfig('on_click_outside'),
         ];
