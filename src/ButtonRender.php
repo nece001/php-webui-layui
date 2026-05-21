@@ -107,6 +107,7 @@ class ButtonRender extends Render
             var i = layer.open({
                 type: 2,
                 area: ['80%', '80%'],
+                title: action.title || '',
                 content: action.url || '',
                 maxmin: true,
                 shadeClose: true,
