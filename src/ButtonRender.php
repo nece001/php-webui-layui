@@ -71,7 +71,8 @@ class ButtonRender extends Render
         }
         $action_data = $this->buildActionData();
         if ($action_data) {
-            $attributes['do-action'] = 'action';
+            $action = $this->component->getConfig('action');
+            $attributes['lay-event'] = $action['event_name'] ?? 'action';
         }
 
         return $this->renderHtml('button.layui-btn', $attributes, $nodes);
@@ -102,7 +103,7 @@ class ButtonRender extends Render
             $js_action_var_json = json_encode($js_action_data, JSON_UNESCAPED_UNICODE);
         }
 
-        $js = "layui.util.on('do-action', {action:function(o, e){
+        $js = "layui.util.on('lay-event', {action:function(o, e){
             layui.stope(e);
 
             var js_action_data = {$js_action_var_json};
