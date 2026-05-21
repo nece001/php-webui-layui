@@ -81,6 +81,22 @@ class ButtonRender extends Render
             if(data){
                 data = decodeURIComponent(data);
                 data = JSON.parse(data);
+                data['data'] = data['data'] || {};
+                
+                var bindId = data.bind_id || '';
+                if(bindId){
+                    var isValid = layui.form.validate('#'+bindId);
+                    if(!isValid){
+                        return;
+                    }
+
+                    var bind = layui.$('#' + bindId);
+                    if(bind){
+                        data['data'][bind.attr('name')] = bind.val();
+                    }
+                }
+
+                console.log('action data:', bind);
             }
             buttonDoAction(data);
         }});";
@@ -96,8 +112,10 @@ class ButtonRender extends Render
             var type = action.type || '';
             if(type == 'form'){
                 buttonDoActionForm(action);
-            }else{
+            }else if(type == 'confirm'){
                 buttonDoActionConfirm(action);
+            }else{
+                buttonDoActionAjax(action);
             }
         }
 
@@ -152,17 +170,29 @@ class ButtonRender extends Render
         
         function buttonDoActionAjax(action, loadIndex){
 
-            var data = action.data || '';
-            if(action.is_json){
-                data = JSON.stringify(data);
+            var url = action.url || '';
+            var method = action.method || 'GET';
+            var data = action.data || [];
+            if(method.toUpperCase() == 'GET'){
+                var query = [];
+                for(var key in data){
+                    query.push(key + '=' + data[key]);
+                }
+
+                if(url.indexOf('?') == -1){
+                    url += '?' + query.join('&');
+                }else{
+                    url += '&' + query.join('&');
+                }
             }
 
             var params = {
-                type: action.method || 'GET',
-                url: action.url || '',
-                data: data,
+                type: method,
+                url: url,
                 success: function(res){
-                    layer.close(loadIndex);
+                    if(loadIndex){
+                        layer.close(loadIndex);
+                    }
                     console.log(res);
 
                     layer.msg(res.message || '操作成功');
@@ -173,8 +203,12 @@ class ButtonRender extends Render
                 }
             };
 
-            if(action.is_json){
-                params.contentType = 'application/json';
+            if(method.toUpperCase() == 'POST'){
+                if(action.is_json){
+                    data = JSON.stringify(data);
+                    params.contentType = 'application/json';
+                }
+                params.data = data;
             }
 
             layui.$.ajax(params);

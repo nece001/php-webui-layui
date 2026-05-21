@@ -33,7 +33,7 @@ class InputRender extends Render
         $value = $this->component->getAttribute('value', '');
         $this->component->removeAttribute('value');
 
-        $validate = $this->component->getConfig('validate', []);
+        $validate = $this->component->getConfig('validate');
         $verify_type = $this->component->getConfig('validate_type', 'tips');
         $attributes = $this->component->getAttributes();
         if ($validate) {
@@ -50,7 +50,7 @@ class InputRender extends Render
     {
         $attributes = $this->component->getAttributes();
 
-        $validate = $this->component->getConfig('validate', []);
+        $validate = $this->component->getConfig('validate');
         $verify_type = $this->component->getConfig('validate_type', 'tips');
         $affix = $this->component->getConfig('affix');
         if ($affix) {
