@@ -95,8 +95,6 @@ class ButtonRender extends Render
                         data['data'][bind.attr('name')] = bind.val();
                     }
                 }
-
-                console.log('action data:', bind);
             }
             buttonDoAction(data);
         }});";
@@ -107,7 +105,6 @@ class ButtonRender extends Render
     private function buildDoActionJsFunction(): void
     {
         $func = "function buttonDoAction(action){
-            console.log(action);
 
             var type = action.type || '';
             if(type == 'form'){
@@ -120,8 +117,6 @@ class ButtonRender extends Render
         }
 
         function buttonDoActionForm(action){
-            console.log(action);
-
             var i = layer.open({
                 type: 2,
                 area: ['80%', '80%'],
@@ -132,7 +127,6 @@ class ButtonRender extends Render
                 btn: ['保存', '取消'],
                 btnAlign: 'c',
                 yes: function(index, layero){
-                    console.log(index, layero);
                     var loadIndex = layer.msg('操作中...', {icon: 16,shade: 0.01});
                     layer.close(i);
 
@@ -193,7 +187,6 @@ class ButtonRender extends Render
                     if(loadIndex){
                         layer.close(loadIndex);
                     }
-                    console.log(res);
 
                     layer.msg(res.message || '操作成功');
                 },
