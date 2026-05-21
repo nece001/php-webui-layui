@@ -6,6 +6,23 @@ use Nece\WebUi\Render;
 
 class ButtonRender extends Render
 {
+    private static $js_action_data = [];
+
+    public static function addJsActionData(string $key, array $data): void
+    {
+        self::$js_action_data[$key] = $data;
+    }
+
+    public static function getJsActionData(): array
+    {
+        return self::$js_action_data;
+    }
+
+    public static function clearJsActionData(): void
+    {
+        self::$js_action_data = [];
+    }
+
     public function render(): string
     {
         $type = $this->component->getAttribute('type');
@@ -55,7 +72,6 @@ class ButtonRender extends Render
         $action_data = $this->buildActionData();
         if ($action_data) {
             $attributes['do-action'] = 'action';
-            $attributes['data-action'] = $action_data;
         }
 
         return $this->renderHtml('button.layui-btn', $attributes, $nodes);
@@ -65,6 +81,12 @@ class ButtonRender extends Render
     {
         $action = $this->component->getConfig('action');
         if ($action) {
+
+            self::addJsActionData($this->component->getId(), $action);
+            PageRender::addDataClearFunction('buttonDoAction', function(){
+                ButtonRender::clearJsActionData();
+            });
+
             $this->buildJavascript();
             $json = json_encode($action, JSON_UNESCAPED_UNICODE);
             return urlencode($json);
@@ -74,15 +96,21 @@ class ButtonRender extends Render
 
     private function buildJavascript(): void
     {
+        $js_action_data = self::getJsActionData();
+        $js_action_var_json = '{}';
+        if($js_action_data){
+            $js_action_var_json = json_encode($js_action_data, JSON_UNESCAPED_UNICODE);
+        }
+
         $js = "layui.util.on('do-action', {action:function(o, e){
             layui.stope(e);
 
-            var data = o.data('action');
+            var js_action_data = {$js_action_var_json};
+
+            var data = js_action_data[o.attr('id')];
             if(data){
-                data = decodeURIComponent(data);
-                data = JSON.parse(data);
                 data['data'] = data['data'] || {};
-                
+
                 var bindId = data.bind_id || '';
                 if(bindId){
                     var isValid = layui.form.validate('#'+bindId);
@@ -98,7 +126,7 @@ class ButtonRender extends Render
             }
             buttonDoAction(data);
         }});";
-        PageRender::addJavaScriptCode($js);
+        PageRender::addJavaScriptCode($js, 'buttonDoAction');
         $this->buildDoActionJsFunction();
     }
 
@@ -207,6 +235,6 @@ class ButtonRender extends Render
             layui.$.ajax(params);
         }";
 
-        PageRender::addJavaScriptCode($func, 'buttonDoAction');
+        PageRender::addJavaScriptCode($func, 'buttonDoActionFunction');
     }
 }
