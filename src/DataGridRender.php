@@ -16,6 +16,7 @@ class DataGridRender extends Render
 
     public function render(): string
     {
+        $this->toolbar = $this->component->getConfig('toolbar', false);
         $this->grid_id = $this->component->getId();
         $this->buildJavascript();
 
