@@ -11,7 +11,7 @@ class DataGridRender extends Render
     private $html = [];
     private $javascript = [];
     private $toolbar = false;
-    private $action = false;
+    private $operation = false;
     private $primary_key = 'id';
 
     public function render(): string
@@ -43,7 +43,7 @@ class DataGridRender extends Render
         $this->buildSearchFormJavascriptFunction();
         $this->buildDataParseFuncitonJavascript();
         $this->buildToolbarTemplate();
-        $this->buildRowActionTemplate();
+        $this->buildOperationTemplate();
 
         $cols = $this->buildColumnsJson();
         $exportToolJson = $this->buildExportToolJson();
@@ -58,9 +58,10 @@ class DataGridRender extends Render
             'elem' => '#' . $this->grid_id,
             'cols' => 'cols_json_placeholder',
             'url' => $this->component->getConfig('data_url'),
+            'data' => $this->component->getConfig('data'),
             'toolbar' => $this->toolbar ? '#' . $this->grid_id . '_toolbar_template' : null,
             'defaultToolbar' => $default_toolbar,
-            'page' => true,
+            'page' => $this->component->getConfig('pagination'),
             'even' => true,
             'limit' => $this->component->getConfig('page_size'),
             'request' => [
@@ -119,22 +120,29 @@ class DataGridRender extends Render
                 $row[] = $params_json;
             }
 
-            if ($this->action) {
+            if ($this->operation) {
                 $operation = $child->getConfig('operation');
+                $template_id = '#' . $this->grid_id . '_row_operation';
                 if ($operation) {
                     $oper = [
                         'fixed' => 'right',
-                        'templet' => '#' . $this->grid_id . '_row_action',
+                        'templet' => $template_id,
                         'title' => $operation->getConfig('title'),
                         'width' => $operation->getConfig('width'),
                         'rowspan' => $operation->getConfig('row_span'),
                         'colspan' => $operation->getConfig('col_span'),
                         'align' => $operation->getConfig('align'),
                     ];
-
-                    $oper = $this->arrayFilter($oper);
-                    $row[] = json_encode($oper, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $oper = [
+                        'fixed' => 'right',
+                        'templet' => $template_id,
+                        'title' => 'Operation',
+                        'align' => 'center',
+                    ];
                 }
+                $oper = $this->arrayFilter($oper);
+                $row[] = json_encode($oper, JSON_UNESCAPED_UNICODE);
             }
 
             $cols[] = '[' . implode(',', $row) . ']';
@@ -149,12 +157,15 @@ class DataGridRender extends Render
         if ($tools) {
             $this->toolbar = true;
 
+            $tools_data = [];
             $buttons = [];
-            foreach ($tools as $event => $tool) {
-                if ($this->inPermission($tool['url'])) {
-                    $text = $tool['text'];
-                    $icon = $tool['icon'];
-                    $buttons[] = '<button class="layui-btn layui-btn-xs" lay-event="' . $event . '" title="' . $text . '"><i class="layui-icon layui-icon-' . $icon . '"></i></button>';
+            foreach ($tools as $tool) {
+                $buttons[] = $this->getRender($tool)->render();
+
+                $action = $tool->getConfig('action');
+                if ($action) {
+                    $event = $action->getConfig('event_name');
+                    $tools_data[$event] = $action->toArray();
                 }
             }
 
@@ -163,10 +174,10 @@ class DataGridRender extends Render
                     ' . implode('', $buttons) . '
                 </div>
             </script>';
-            $tools_json = json_encode($tools, JSON_UNESCAPED_UNICODE);
+            $tools_json = json_encode($tools_data, JSON_UNESCAPED_UNICODE);
 
             $javascript = "layui.table.on('toolbar($this->grid_id)', function(obj){
-                console.log(obj);
+                console.log('toolbar data:', obj);
 
                 var tools = {$tools_json};
                 var checkdata = layui.table.checkStatus(obj.config.id);
@@ -177,16 +188,29 @@ class DataGridRender extends Render
 
                 try{
                     if(tools[obj.event]){
-                        var type = tools[obj.event]['type'];
+                        var tool = tools[obj.event];
+                        var type = tool['type'];
+                        var title = tool['title'];
+
+                        var request = {
+                            url: tool['url'].replace('{value}', values),
+                            method: tool['method'] || 'get',
+                            is_json: tool['is_json'] || false,
+                            data: tool['data'] || {}
+                        };
+
                         if(type === 'form'){
-                            var url = tools[obj.event]['url'].replace('{value}', values);
-                            var save_url = tools[obj.event]['save_url'].replace('{value}', values);
-                            var text = tools[obj.event]['text'];
-                            admin_grid_open_form_function('{$this->grid_id}', text, url, save_url);
+                            var action = tool['submit_action'];
+                            var submit = {
+                                url: (action['url'] || '').replace('{value}', values),
+                                method: action['method'] || 'post',
+                                is_json: action['is_json'] || false,
+                                data: action['data'] || {}
+                            };
+
+                            data_grid_open_form_function('{$this->grid_id}', title, request, submit);
                         }else{
-                            var url = tools[obj.event]['url'].replace('{value}', values);
-                            var message = tools[obj.event]['message'];
-                            admin_grid_do_request_function('{$this->grid_id}', url, message);
+                            data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
                     }
                 }catch(e){console.log(e);}
@@ -197,38 +221,58 @@ class DataGridRender extends Render
         }
     }
 
-    private function buildRowActionTemplate()
+    private function buildOperationTemplate()
     {
-        $actions = $this->component->getConfig('actions', []);
-        if ($actions) {
-            $this->action = true;
+        $operations = $this->component->getConfig('operations', []);
+        if ($operations) {
+            $this->operation = true;
 
+            $operations_data = [];
             $buttons = [];
-            foreach ($actions as $event => $action) {
-                if ($this->inPermission($action['url'])) {
-                    $text = $action['text'];
-                    $buttons[] = '<button class="layui-btn layui-btn-xs" lay-event="' . $event . '" title="' . $text . '">' . $text . '</button>';
+            foreach ($operations as $event => $button) {
+                $buttons[] = $this->getRender($button)->render();
+
+                $action = $button->getConfig('action');
+                if ($action) {
+                    $event = $action->getConfig('event_name');
+                    $operations_data[$event] = $action->toArray();
                 }
             }
-            $actions_json = json_encode($actions, JSON_UNESCAPED_UNICODE);
+            $operations_json = json_encode($operations_data, JSON_UNESCAPED_UNICODE);
 
-            $html = '<script type="text/html" id="' . $this->grid_id . '_row_action"><div class="layui-clear-space">' . implode('', $buttons) . '</div></div></script>';
+            $html = '<script type="text/html" id="' . $this->grid_id . '_row_operation"><div class="layui-clear-space">' . implode('', $buttons) . '</div></div></script>';
             $javascript = "layui.table.on('tool({$this->grid_id})', function(obj){
-                console.log(obj);
+                console.log('operation data:', obj);
 
-                var actions = {$actions_json};
+                var operations = {$operations_json};
                 try{
-                    if(actions[obj.event]){
-                        var type = actions[obj.event]['type'];
+                    if(operations[obj.event]){
+                        var operation = operations[obj.event];
+                        var type = operation['type'];
+                        var title = operation['title'];
+
+                        var request = {
+                            url: operation['url'].replace('{value}', obj.data.id),
+                            method: operation['method'] || 'get',
+                            is_json: operation['is_json'] || false,
+                            data: operation['data'] || {}
+                        };
+
                         if(type === 'form'){
-                            var url = actions[obj.event]['url'].replace('{value}', obj.data.id);
-                            var save_url = actions[obj.event]['save_url'].replace('{value}', obj.data.id);
-                            var text = actions[obj.event]['text'];
-                            admin_grid_open_form_function('{$this->grid_id}', text, url, save_url);
+                            var action = operation['submit_action'];
+                            var save_data = action['data'] || {};
+                            save_data['{$this->primary_key}'] = obj.data.id;
+
+                            var submit = {
+                                url: (action['url'] || '').replace('{value}', obj.data.id),
+                                method: action['method'] || 'post',
+                                is_json: action['is_json'] || false,
+                                data: save_data
+                            };
+
+                            data_grid_open_form_function('{$this->grid_id}', title, request, submit);
                         }else{
-                            var url = actions[obj.event]['url'].replace('{value}', obj.data.id);
-                            var message = actions[obj.event]['message'];
-                            admin_grid_do_request_function('{$this->grid_id}', url, message);
+                            data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
                     }
                 }catch(e){}
@@ -329,7 +373,17 @@ class DataGridRender extends Render
 
     private function buildOpenFormActionJavascriptFunction(): string
     {
-        $function = "function admin_grid_open_form_function(reload_id, title, url, save_url){
+        $function = "function data_grid_open_form_function(reload_id, title, request, submit){
+
+            var url = request.url || '';
+            var method = request.method || 'get';
+            var is_json = request.is_json || false;
+            var data = request.data || {};
+
+            var save_url = submit.url || '';
+            var save_method = submit.method || 'post';
+            var save_data = submit.data || {};
+            var save_is_json = submit.is_json || false;
 
             if(location.search){
                 if(url.indexOf('?') === -1){
@@ -361,21 +415,19 @@ class DataGridRender extends Render
                     var form = iframeWin.layui.$('form');
 
                     if(layui.form.validate(form)){
+                        var items = form.serializeArray();
 
-                    var items = form.serializeArray();
+                        var data = save_data;
+                        items.forEach(function(item){
+                            data[item.name] = item.value;
+                        });
+                        // console.log(data);
 
-                    var data = {};
-                    items.forEach(function(item){
-                        data[item.name] = item.value;
-                    });
-                    // console.log(data);
+                        layer.close(index);
 
-                    layer.close(index);
-                        layui.$.ajax({
+                        var params = {
                             url: save_url,
-                            type: 'post',
-                            contentType: 'application/json',
-                            data: JSON.stringify(data),
+                            type: save_method,
                             success: function(res){
                                 if(res.code === 0){
                                     layer.msg(res.message, {icon: 1});
@@ -386,9 +438,33 @@ class DataGridRender extends Render
                                     layer.msg(res.message, {icon: 3});
                                 }
                             }
-                        });
-                    }
+                        }
 
+                        if(save_method.toLowerCase() === 'get'){
+                            var query =[];
+                            for(var key in data){
+                                query.push(key + '=' + data[key]);
+                            }
+                            if(query.length > 0){
+                                if(save_url.indexOf('?') === -1){
+                                    save_url += '?' + query.join('&');
+                                }else{
+                                    save_url += '&' + query.join('&');
+                                }
+                            }
+                        }
+
+                        if(save_method.toLowerCase() === 'post'){
+                            if(save_is_json){
+                                params.contentType = 'application/json';
+                                params.data = JSON.stringify(data);
+                            }else{
+                                params.data = data;
+                            }
+                        }
+
+                        layui.$.ajax(params);
+                    }
                 }
             });
         }";
@@ -398,10 +474,15 @@ class DataGridRender extends Render
 
     private function buildDoRequestActionJavascriptFunction(): string
     {
-        $function = "function admin_grid_do_request_function(reload_id, url, message){
+        $function = "function data_grid_do_request_function(reload_id, title, request){
 
-            if(message){
-                layer.confirm(message, {
+            url = request.url || '';
+            data = request.data || {};
+            method = request.method || 'get';
+            is_json = request.is_json || false;
+
+            if(title){
+                layer.confirm(title, {
                     btn: ['确定', '关闭'] //按钮
                 }, function(){
                     doRequest();
@@ -412,20 +493,50 @@ class DataGridRender extends Render
             }
 
             function doRequest(){
-                layui.$.ajax({
+                var params = {
                     url: url,
-                    type: 'get',
+                    type: method,
                     success: function(res){
                         if(res.code === 0){
-                            layer.msg(res.message, {icon: 1});
+                            layer.msg(res.message || '操作成功', {icon: 1});
                             if(reload_id){
                                 layui.table.reload(reload_id);
                             }
                         }else{
-                            layer.msg(res.message, {icon: 2});
+                            layer.msg(res.message || '操作失败', {icon: 2});
                         }
                     }
-                });
+                };
+
+                if(method.toLowerCase() === 'get'){
+                    if(data){
+                        var query = [];
+                        for(var key in data){
+                            query.push(key + '=' + data[key]);
+                        }
+
+                        if(query.length > 0){
+                            if(params.url.indexOf('?') === -1){
+                                params.url += '?' + query.join('&');
+                            }else{
+                                params.url += '&' + query.join('&');
+                            }
+                        }
+                    }
+                }
+
+                if(method.toLowerCase() === 'post'){
+                    if(data){
+                        if(is_json){
+                            params.contentType = 'application/json';
+                            params.data = JSON.stringify(data);
+                        }else{
+                            params.data = data;
+                        }
+                    }
+                }
+
+                layui.$.ajax(params);
             }
         }";
         return $function;

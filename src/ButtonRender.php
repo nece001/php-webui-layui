@@ -69,37 +69,37 @@ class ButtonRender extends Render
             $attributes['href'] = $url;
             return $this->renderHtml('a.layui-btn', $attributes, $nodes);
         }
-        $action_data = $this->buildActionData();
-        if ($action_data) {
-            $action = $this->component->getConfig('action');
-            $attributes['lay-event'] = $action['event_name'] ?? 'action';
+
+        $action = $this->component->getConfig('action');
+        if ($action) {
+            $attributes['lay-event'] = $action->getConfig('event_name', 'action');
+            if ($attributes['lay-event'] == 'action') {
+                $this->buildActionData();
+            }
         }
 
         return $this->renderHtml('button.layui-btn', $attributes, $nodes);
     }
 
-    private function buildActionData(): string
+    private function buildActionData(): void
     {
         $action = $this->component->getConfig('action');
         if ($action) {
 
-            self::addJsActionData($this->component->getId(), $action);
-            PageRender::addDataClearFunction('buttonDoAction', function(){
+            self::addJsActionData($this->component->getId(), $action->toArray());
+            PageRender::addDataClearFunction('buttonDoAction', function () {
                 ButtonRender::clearJsActionData();
             });
 
             $this->buildJavascript();
-            $json = json_encode($action, JSON_UNESCAPED_UNICODE);
-            return urlencode($json);
         }
-        return '';
     }
 
     private function buildJavascript(): void
     {
         $js_action_data = self::getJsActionData();
         $js_action_var_json = '{}';
-        if($js_action_data){
+        if ($js_action_data) {
             $js_action_var_json = json_encode($js_action_data, JSON_UNESCAPED_UNICODE);
         }
 
