@@ -47,8 +47,9 @@ class DataGridRender extends Render
 
         $cols = $this->buildColumnsJson();
         $exportToolJson = $this->buildExportToolJson();
+        $refreshToolJson = $this->buildRefreshToolJson();
 
-        $default_toolbar = ['filter', 'print'];
+        $default_toolbar = ['refresh_toolbar_export_json', 'filter', 'print'];
         if ($exportToolJson) {
             $default_toolbar[] = 'default_toolbar_export_json';
         }
@@ -77,6 +78,7 @@ class DataGridRender extends Render
             'cols_json_placeholder' => $cols,
             'parseData_function' => 'data_grid_parse_data_function',
             'default_toolbar_export_json' => $exportToolJson,
+            'refresh_toolbar_export_json' => $refreshToolJson,
         ]);
     }
 
@@ -325,6 +327,18 @@ class DataGridRender extends Render
                 window.location.href = url;
             }
 
+        }}";
+        return $json;
+    }
+
+    private function buildRefreshToolJson(): string
+    {
+        $json = "{name: 'refresh', title:'刷新', icon: 'layui-icon-refresh', layEvent: 'LAYTABLE_REFRESH',onClick:function(obj) {
+            layui.table.reload('{$this->grid_id}', {
+                page: {
+                    curr: 1
+                }
+            });
         }}";
         return $json;
     }
