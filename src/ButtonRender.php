@@ -33,6 +33,7 @@ class ButtonRender extends Render
         $radius = $this->component->getConfig('radius');
         $fluid = $this->component->getConfig('fluid');
         $url = $this->component->getConfig('url');
+        $filter = $this->component->getConfig('filter');
         $children = $this->component->getChildren();
 
         $nodes = [];
@@ -62,6 +63,10 @@ class ButtonRender extends Render
 
         if ($type == 'submit') {
             $this->component->setAttribute('lay-submit', '');
+        }
+
+        if($filter){
+            $this->component->setAttribute('lay-filter', $filter);
         }
 
         $attributes = $this->component->getAttributes();

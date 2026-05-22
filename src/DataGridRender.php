@@ -353,16 +353,18 @@ class DataGridRender extends Render
 
         $filter_key = $this->component->getConfig('search_button_filter_key');
 
-        $javascript = "layui.form.on('submit({$filter_key})', function(data){
-            layui.table.reload('{$this->grid_id}', {
-                page: {
-                    curr: 1
-                },
-                where: data.field
-            });
-        })";
+        if ($filter_key) {
+            $javascript = "layui.form.on('submit({$filter_key})', function(data){
+                layui.table.reload('{$this->grid_id}', {
+                    page: {
+                        curr: 1
+                    },
+                    where: data.field
+                });
+            })";
 
-        PageRender::addJavaScriptCode($javascript);
+            PageRender::addJavaScriptCode($javascript);
+        }
     }
 
     private function buildActionJavascriptFunction(): void

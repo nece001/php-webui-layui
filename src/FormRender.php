@@ -133,9 +133,19 @@ class FormRender extends Render
         $buttons = $this->component->getConfig('buttons', []);
         if ($buttons) {
             $button_align = $this->component->getConfig('button_align');
+            $data_grid = $this->component->getConfig('data_grid');
 
             $nodes = [];
             foreach ($buttons as $button) {
+                if ($data_grid) {
+                    $type = $button->getAttribute('type');
+                    if ($type == 'submit') {
+                        $search_filter_key = $data_grid->getId() . '_search_grid';
+                        $button->setFilter($search_filter_key);
+                        $data_grid->setSearchButtonFilterKey($search_filter_key);
+                    }
+                }
+
                 $nodes[] = $this->getRender($button)->render();
             }
 
