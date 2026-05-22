@@ -82,7 +82,7 @@ class DataGridRender extends Render
         ]);
     }
 
-    private function buildColumnsJson(): string
+    protected function buildColumnsJson(): string
     {
         $children = $this->component->getChildren();
         $checkbox = $this->component->getConfig('checkbox');
@@ -153,7 +153,7 @@ class DataGridRender extends Render
         return '[' . implode(',', $cols) . ']';
     }
 
-    private function buildToolbarTemplate(): void
+    protected function  buildToolbarTemplate(): void
     {
         $tools = $this->component->getConfig('tools', []);
         if ($tools) {
@@ -223,7 +223,7 @@ class DataGridRender extends Render
         }
     }
 
-    private function buildOperationTemplate()
+    protected function  buildOperationTemplate()
     {
         $operations = $this->component->getConfig('operations', []);
         if ($operations) {
@@ -285,7 +285,7 @@ class DataGridRender extends Render
         }
     }
 
-    private function buildDataParseFuncitonJavascript()
+    protected function  buildDataParseFuncitonJavascript()
     {
         $javascript = "function data_grid_parse_data_function(res){
             return {
@@ -298,7 +298,7 @@ class DataGridRender extends Render
         PageRender::addJavaScriptCode($javascript, 'data_grid_parseData_function');
     }
 
-    private function buildExportToolJson(): string
+    protected function  buildExportToolJson(): string
     {
         $export_url = $this->component->getConfig('export_url');
         if (!$export_url) {
@@ -331,7 +331,7 @@ class DataGridRender extends Render
         return $json;
     }
 
-    private function buildRefreshToolJson(): string
+    protected function  buildRefreshToolJson(): string
     {
         $json = "{name: 'refresh', title:'刷新', icon: 'layui-icon-refresh', layEvent: 'LAYTABLE_REFRESH',onClick:function(obj) {
             layui.table.reload('{$this->grid_id}', {
@@ -343,7 +343,7 @@ class DataGridRender extends Render
         return $json;
     }
 
-    private function buildColumTemplate(string $field, string $template)
+    protected function  buildColumTemplate(string $field, string $template)
     {
         if ($template) {
             $id = $this->grid_id . '_column_template_' . $field;
@@ -362,7 +362,7 @@ class DataGridRender extends Render
         return null;
     }
 
-    private function buildSearchFormJavascriptFunction()
+    protected function  buildSearchFormJavascriptFunction()
     {
 
         $filter_key = $this->component->getConfig('search_button_filter_key');
@@ -381,13 +381,13 @@ class DataGridRender extends Render
         }
     }
 
-    private function buildActionJavascriptFunction(): void
+    protected function  buildActionJavascriptFunction(): void
     {
         $this->javascript[] = $this->buildOpenFormActionJavascriptFunction();
         $this->javascript[] = $this->buildDoRequestActionJavascriptFunction();
     }
 
-    private function buildOpenFormActionJavascriptFunction(): string
+    protected function  buildOpenFormActionJavascriptFunction(): string
     {
         $function = "function data_grid_open_form_function(reload_id, title, request, submit){
 
@@ -488,7 +488,7 @@ class DataGridRender extends Render
         return $function;
     }
 
-    private function buildDoRequestActionJavascriptFunction(): string
+    protected function  buildDoRequestActionJavascriptFunction(): string
     {
         $function = "function data_grid_do_request_function(reload_id, title, request){
 
@@ -558,7 +558,7 @@ class DataGridRender extends Render
         return $function;
     }
 
-    private function inPermission(string $url): bool
+    protected function  inPermission(string $url): bool
     {
         $path = parse_url($url, PHP_URL_PATH);
         $permission = $this->component->getConfig('permission', []);
