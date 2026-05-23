@@ -7,6 +7,8 @@ use Nece\WebUi\Render;
 
 class FormRender extends Render
 {
+    private $hidden_controls = [];
+
     public function render(): string
     {
         $children = $this->component->getChildren();
@@ -16,6 +18,7 @@ class FormRender extends Render
             $nodes[] = $this->renderItem($child);
         }
 
+        $nodes = array_merge($this->hidden_controls, $nodes);
         $nodes[] = $this->renderButtons();
         return $this->renderHtml('form.layui-form layui-form-pane', $this->component->getAttributes(), $nodes);
     }
@@ -28,11 +31,20 @@ class FormRender extends Render
             $html = $this->renderControl($control);
         }
 
-        return $this->renderHtml('div.layui-form-item', [], $html);
+        if ($html) {
+            return $this->renderHtml('div.layui-form-item', [], $html);
+        }
+        return '';
     }
 
     private function renderControl($control): string
     {
+        $type = $control->getAttribute('type');
+        if ($type ==  'hidden') {
+            $this->hidden_controls[] = $this->renderHtml('input', $control->getAttributes());
+            return '';
+        }
+
         $ctl = $this->getRender($control)->render();
         $ctl = $this->renderControlPend($control, $ctl);
 
@@ -57,6 +69,12 @@ class FormRender extends Render
         $form_inline_id = 'form_inline_id_' . uniqid();
         $nodes = [];
         foreach ($controls as $control) {
+            $type = $control->getAttribute('type');
+            if ($type ==  'hidden') {
+                $this->hidden_controls[] = $this->renderHtml('input', $control->getAttributes());
+                continue;
+            }
+
             $control->setAncestorId($form_inline_id);
             $ctl = $this->getRender($control)->render();
             $ctl = $this->renderControlPend($control, $ctl);
@@ -81,7 +99,10 @@ class FormRender extends Render
             }
         }
 
-        return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
+        if ($nodes) {
+            return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
+        }
+        return '';
     }
 
     private function renderControlPend($control, string $ctl): string
