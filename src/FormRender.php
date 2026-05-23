@@ -57,9 +57,10 @@ class FormRender extends Render
         $label = $control->getConfig('label', '');
         if ($label) {
             $nodes[] = $this->renderHtml('label.layui-form-label', ['for' => $control->getId()], $label);
+            $nodes[] = $this->renderHtml('div.layui-input-block', [], $ctl);
+        }else{
+            $nodes[] = $ctl;
         }
-
-        $nodes[] = $this->renderHtml('div.layui-input-block', [], $ctl);
 
         return implode('', $nodes);
     }

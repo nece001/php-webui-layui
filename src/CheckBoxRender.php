@@ -52,6 +52,6 @@ class CheckBoxRender extends Render
         if ($switch) {
             return array_shift($items);
         }
-        return $this->renderHtml('div.layui-input', [], $items);
+        return implode('', $items);
     }
 }
