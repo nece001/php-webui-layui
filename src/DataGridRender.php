@@ -333,7 +333,7 @@ class DataGridRender extends Render
 
     protected function  buildRefreshToolJson(): string
     {
-        $json = "{name: 'refresh', title:'刷新', icon: 'layui-icon-refresh', layEvent: 'LAYTABLE_REFRESH',onClick:function(obj) {
+        $json = "{name: 'refresh', title:'刷新', icon: 'layui-icon-refresh-3', layEvent: 'LAYTABLE_REFRESH',onClick:function(obj) {
             layui.table.reload('{$this->grid_id}', {
                 page: {
                     curr: 1
