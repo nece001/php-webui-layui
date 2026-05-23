@@ -66,7 +66,7 @@ class NavRender extends Render
             $contents[] = $this->getRender(new Icon($icon))->render();
         }
         if ($image) {
-            $contents[] = $this->getRender((new Tag('img'))->setAttribute('src', $image)->addClassName('layui-nav-img'))->render();
+            $contents[] = $this->renderHtml('img', ['src' => $image, 'class' => 'layui-nav-img']);
         }
         if ($text) {
             $contents[] = $text;
