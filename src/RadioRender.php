@@ -36,6 +36,11 @@ class RadioRender extends Render
                 $items[] = $this->renderHtml('div', ['lay-radio' => ''], $template);
             }
         }
+
+        $clear_input_border = $this->component->getConfig('clear_input_border');
+        if ($clear_input_border) {
+            return implode('', $items);
+        }
         return $this->renderHtml('div.layui-input', [], $items);
     }
 }

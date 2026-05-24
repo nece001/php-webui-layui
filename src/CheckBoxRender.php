@@ -52,6 +52,12 @@ class CheckBoxRender extends Render
         if ($switch) {
             return array_shift($items);
         }
-        return implode('', $items);
+
+        $clear_input_border = $this->component->getConfig('clear_input_border');
+
+        if ($clear_input_border) {
+            return implode('', $items);
+        }
+        return $this->renderHtml('div.layui-input', [], $items);
     }
 }
