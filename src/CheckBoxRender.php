@@ -50,11 +50,10 @@ class CheckBoxRender extends Render
         }
 
         if ($switch) {
-            return array_shift($items);
+            $items = array_shift($items);
         }
 
-        $clear_input_border = $this->component->getConfig('clear_input_border');
-
+        $clear_input_border = $this->component->getConfig('clear_input_border', false);
         if ($clear_input_border) {
             return implode('', $items);
         }
