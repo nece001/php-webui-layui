@@ -15,7 +15,6 @@ class PageRender extends RenderPageRender
     private function addAjaxBeforeIntercept(): void
     {
         $func = $this->component->getConfig('ajax_before_intercept_js_function');
-        var_dump($func);
         if ($func) {
             $js = "layui.define(['jquery'], function(exports){
                 var $ = layui.jquery;
