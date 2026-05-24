@@ -4,64 +4,41 @@ namespace Nece\WebUi\Layui;
 
 class TreeDataGridRender extends DataGridRender
 {
-    protected $js_class = 'table';
-    
+    protected $js_class = 'treeTable';
+
     protected function buildParamsJson(): string
     {
-        $this->buildSearchFormJavascriptFunction();
-        $this->buildDataParseFuncitonJavascript();
-        $this->buildToolbarTemplate();
-        $this->buildOperationTemplate();
+        $params_json = parent::buildParamsJson();
 
-        $cols = $this->buildColumnsJson();
-        $exportToolJson = $this->buildExportToolJson();
-        $refreshToolJson = $this->buildRefreshToolJson();
+        $async = [
+            'enable' => $this->component->getConfig('async'),
+            'url' => $this->component->getConfig('async_url'),
+            'autoParam' => $this->component->getConfig('async_params'),
+        ];
+        $async = $this->arrayFilter($async);
 
-        $default_toolbar = ['refresh_toolbar_export_json', 'filter', 'print'];
-        if ($exportToolJson) {
-            $default_toolbar[] = 'default_toolbar_export_json';
-        } else {
-            $default_toolbar[] = 'exports';
-        }
+        $custom_name = [
+            'children' => $this->component->getConfig('custom_children_field'),
+            'isParent' => $this->component->getConfig('custom_is_parent_field'),
+            'name' => $this->component->getConfig('custom_name_field'),
+            'id' => $this->component->getConfig('custom_id_field'),
+            'pid' => $this->component->getConfig('custom_pid_field'),
+            'icon' => $this->component->getConfig('custom_icon_field'),
+        ];
+        $custom_name = $this->arrayFilter($custom_name);
 
-        $async_url = $this->component->getConfig('async_url');
-        $async_params = $this->component->getConfig('async_params');
-        $async = null;
-        if ($async_url) {
-            $async['enable'] = false;
-            $async['url'] = $async_url;
-        }
-        if ($async_params) {
-            $async['enable'] = false;
-            $async['autoParam'] = $async_params;
-        }
-
-        $params = [
-            'id' => $this->grid_id,
-            'elem' => '#' . $this->grid_id,
-            'cols' => 'cols_json_placeholder',
-            'url' => $this->component->getConfig('data_url'),
-            'data' => $this->component->getConfig('data'),
-            'toolbar' => $this->toolbar ? '#' . $this->grid_id . '_toolbar_template' : null,
-            'defaultToolbar' => $default_toolbar,
-            'page' => $this->component->getConfig('pagination'),
-            'even' => true,
-            'limit' => $this->component->getConfig('page_size'),
-            'request' => [
-                'pageName' => $this->component->getConfig('page_var_name', 'page'),
-                'limitName' => $this->component->getConfig('page_size_var_name', 'page_size'),
-            ],
-            'parseData' => 'parseData_function',
-            'lineStyle' => $this->component->getConfig('line_style'),
-            'async' => $async,
+        $tree = [
+            'async' => $async ? $async : null,
+            'customName' => $custom_name ? $custom_name : null,
         ];
 
-        $params = $this->arrayFilter($params);
-        return $this->arrayToJavaScriptObject($params, [
-            'cols_json_placeholder' => $cols,
-            'parseData_function' => 'data_grid_parse_data_function',
-            'default_toolbar_export_json' => $exportToolJson,
-            'refresh_toolbar_export_json' => $refreshToolJson,
-        ]);
+        $tree = $this->arrayFilter($tree);
+
+        // 去掉最后一个}
+        if ($tree) {
+            $params_json = substr(trim($params_json), 0, -1);
+            $params_json .= ', tree:' . json_encode($tree) . '}';
+        }
+        return $params_json;
     }
 }
