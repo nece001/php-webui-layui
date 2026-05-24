@@ -4,16 +4,25 @@ namespace Nece\WebUi\Layui;
 
 class TreeDataGridRender extends DataGridRender
 {
-    public function render(): string
+    protected $js_class = 'table';
+    
+    protected function buildParamsJson(): string
     {
-        $this->buildJavascript();
-        return $this->renderHtml('table.layui-hide', $this->component->getAttributes());
-    }
-
-    protected function  buildJavascript(): void
-    {
-        $cols = $this->buildColumnsJson();
+        $this->buildSearchFormJavascriptFunction();
         $this->buildDataParseFuncitonJavascript();
+        $this->buildToolbarTemplate();
+        $this->buildOperationTemplate();
+
+        $cols = $this->buildColumnsJson();
+        $exportToolJson = $this->buildExportToolJson();
+        $refreshToolJson = $this->buildRefreshToolJson();
+
+        $default_toolbar = ['refresh_toolbar_export_json', 'filter', 'print'];
+        if ($exportToolJson) {
+            $default_toolbar[] = 'default_toolbar_export_json';
+        } else {
+            $default_toolbar[] = 'exports';
+        }
 
         $async_url = $this->component->getConfig('async_url');
         $async_params = $this->component->getConfig('async_params');
@@ -28,20 +37,31 @@ class TreeDataGridRender extends DataGridRender
         }
 
         $params = [
-            'elem' => '#' . $this->component->getId(),
+            'id' => $this->grid_id,
+            'elem' => '#' . $this->grid_id,
             'cols' => 'cols_json_placeholder',
             'url' => $this->component->getConfig('data_url'),
-            'async' => $async,
+            'data' => $this->component->getConfig('data'),
+            'toolbar' => $this->toolbar ? '#' . $this->grid_id . '_toolbar_template' : null,
+            'defaultToolbar' => $default_toolbar,
             'page' => $this->component->getConfig('pagination'),
+            'even' => true,
+            'limit' => $this->component->getConfig('page_size'),
+            'request' => [
+                'pageName' => $this->component->getConfig('page_var_name', 'page'),
+                'limitName' => $this->component->getConfig('page_size_var_name', 'page_size'),
+            ],
             'parseData' => 'parseData_function',
+            'lineStyle' => $this->component->getConfig('line_style'),
+            'async' => $async,
         ];
 
-        $params_json = $this->arrayToJavaScriptObject($params, [
+        $params = $this->arrayFilter($params);
+        return $this->arrayToJavaScriptObject($params, [
             'cols_json_placeholder' => $cols,
             'parseData_function' => 'data_grid_parse_data_function',
+            'default_toolbar_export_json' => $exportToolJson,
+            'refresh_toolbar_export_json' => $refreshToolJson,
         ]);
-
-        $js = "layui.treeTable.render({$params_json});";
-        PageRender::addJavaScriptCode($js);
     }
 }

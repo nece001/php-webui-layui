@@ -8,11 +8,12 @@ class DataGridRender extends Render
 {
     protected $grid_id = '';
 
-    private $html = [];
-    private $javascript = [];
-    private $toolbar = false;
-    private $operation = false;
-    private $primary_key = 'id';
+    protected $html = [];
+    protected $javascript = [];
+    protected $toolbar = false;
+    protected $operation = false;
+    protected $primary_key = 'id';
+    protected $js_class = 'table';
 
     public function render(): string
     {
@@ -25,12 +26,12 @@ class DataGridRender extends Render
         return implode('', $this->html);
     }
 
-    private function buildJavascript(): void
+    protected function buildJavascript(): void
     {
         $this->buildActionJavascriptFunction();
         $params = $this->buildParamsJson();
 
-        $javascript = "layui.table.render($params);";
+        $javascript = "layui.{$this->js_class}.render($params);";
         PageRender::addJavaScriptCode($javascript);
 
         foreach ($this->javascript as $javascript) {
@@ -38,7 +39,7 @@ class DataGridRender extends Render
         }
     }
 
-    private function buildParamsJson(): string
+    protected function buildParamsJson(): string
     {
         $this->buildSearchFormJavascriptFunction();
         $this->buildDataParseFuncitonJavascript();
@@ -52,6 +53,8 @@ class DataGridRender extends Render
         $default_toolbar = ['refresh_toolbar_export_json', 'filter', 'print'];
         if ($exportToolJson) {
             $default_toolbar[] = 'default_toolbar_export_json';
+        } else {
+            $default_toolbar[] = 'exports';
         }
 
         $params = [
@@ -178,11 +181,11 @@ class DataGridRender extends Render
             </script>';
             $tools_json = json_encode($tools_data, JSON_UNESCAPED_UNICODE);
 
-            $javascript = "layui.table.on('toolbar($this->grid_id)', function(obj){
+            $javascript = "layui.{$this->js_class}.on('toolbar($this->grid_id)', function(obj){
                 console.log('toolbar data:', obj);
 
                 var tools = {$tools_json};
-                var checkdata = layui.table.checkStatus(obj.config.id);
+                var checkdata = layui.{$this->js_class}.checkStatus(obj.config.id);
                 var values = '';
                 if(checkdata.data.length > 0){
                     values = checkdata.data.map(function(item){return item['{$this->primary_key}'];}).join(',');
@@ -193,26 +196,37 @@ class DataGridRender extends Render
                         var tool = tools[obj.event];
                         var type = tool['type'];
                         var title = tool['title'];
+                        var data = tool['data'] || {};
+
+                        for(var key in data){
+                            data[key] = data[key].replace('{value}', values);
+                        }
 
                         var request = {
                             url: tool['url'].replace('{value}', values),
                             method: tool['method'] || 'get',
                             is_json: tool['is_json'] || false,
-                            data: tool['data'] || {}
+                            data: data
                         };
 
                         if(type === 'form'){
                             var action = tool['submit_action'];
+                            var submit_data = action['data'] || {};
+
+                            for(var key in submit_data){
+                                submit_data[key] = submit_data[key].replace('{value}', values);
+                            }
+
                             var submit = {
                                 url: (action['url'] || '').replace('{value}', values),
                                 method: action['method'] || 'post',
                                 is_json: action['is_json'] || false,
-                                data: action['data'] || {}
+                                data: submit_data
                             };
 
-                            data_grid_open_form_function('{$this->grid_id}', title, request, submit);
+                            {$this->js_class}_data_grid_open_form_function('{$this->grid_id}', title, request, submit);
                         }else{
-                            data_grid_do_request_function('{$this->grid_id}', title, request);
+                            {$this->js_class}_data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
                     }
                 }catch(e){console.log(e);}
@@ -243,7 +257,7 @@ class DataGridRender extends Render
             $operations_json = json_encode($operations_data, JSON_UNESCAPED_UNICODE);
 
             $html = '<script type="text/html" id="' . $this->grid_id . '_row_operation"><div class="layui-clear-space">' . implode('', $buttons) . '</div></div></script>';
-            $javascript = "layui.table.on('tool({$this->grid_id})', function(obj){
+            $javascript = "layui.{$this->js_class}.on('tool({$this->grid_id})', function(obj){
                 console.log('operation data:', obj);
 
                 var operations = {$operations_json};
@@ -252,18 +266,30 @@ class DataGridRender extends Render
                         var operation = operations[obj.event];
                         var type = operation['type'];
                         var title = operation['title'];
+                        var data = operation['data'] || {};
+
+                        for(var key in data){
+                            data[key] = data[key].replace('{value}', obj.data.id);
+                        }
 
                         var request = {
                             url: operation['url'].replace('{value}', obj.data.id),
                             method: operation['method'] || 'get',
                             is_json: operation['is_json'] || false,
-                            data: operation['data'] || {}
+                            data: data
                         };
 
                         if(type === 'form'){
                             var action = operation['submit_action'];
+                            var param_name = action['param_name'] || 'id';
                             var save_data = action['data'] || {};
                             save_data['{$this->primary_key}'] = obj.data.id;
+                            
+                            for(var key in save_data){
+                                if(key == param_name){
+                                    save_data[key] = obj.data.id;
+                                }
+                            }
 
                             var submit = {
                                 url: (action['url'] || '').replace('{value}', obj.data.id),
@@ -272,9 +298,9 @@ class DataGridRender extends Render
                                 data: save_data
                             };
 
-                            data_grid_open_form_function('{$this->grid_id}', title, request, submit);
+                            {$this->js_class}_data_grid_open_form_function('{$this->grid_id}', title, request, submit);
                         }else{
-                            data_grid_do_request_function('{$this->grid_id}', title, request);
+                            {$this->js_class}_data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
                     }
                 }catch(e){}
@@ -306,7 +332,7 @@ class DataGridRender extends Render
         }
 
         $json = "{name: 'exports', onClick:function(obj) {
-            var checkdata = layui.table.checkStatus(obj.config.id);
+            var checkdata = layui.{$this->js_class}.checkStatus(obj.config.id);
             var values = '';
 
             if(checkdata.data.length > 0){
@@ -334,7 +360,7 @@ class DataGridRender extends Render
     protected function  buildRefreshToolJson(): string
     {
         $json = "{name: 'refresh', title:'刷新', icon: 'layui-icon-refresh-3', layEvent: 'LAYTABLE_REFRESH',onClick:function(obj) {
-            layui.table.reload('{$this->grid_id}', {
+            layui.{$this->js_class}.reload('{$this->grid_id}', {
                 page: {
                     curr: 1
                 }
@@ -364,12 +390,11 @@ class DataGridRender extends Render
 
     protected function  buildSearchFormJavascriptFunction()
     {
-
         $filter_key = $this->component->getConfig('search_button_filter_key');
 
         if ($filter_key) {
             $javascript = "layui.form.on('submit({$filter_key})', function(data){
-                layui.table.reload('{$this->grid_id}', {
+                layui.{$this->js_class}.reload('{$this->grid_id}', {
                     page: {
                         curr: 1
                     },
@@ -389,7 +414,7 @@ class DataGridRender extends Render
 
     protected function  buildOpenFormActionJavascriptFunction(): string
     {
-        $function = "function data_grid_open_form_function(reload_id, title, request, submit){
+        $function = "function {$this->js_class}_data_grid_open_form_function(reload_id, title, request, submit){
 
             var url = request.url || '';
             var method = request.method || 'get';
@@ -448,7 +473,7 @@ class DataGridRender extends Render
                                 if(res.code === 0){
                                     layer.msg(res.message, {icon: 1});
                                     if(reload_id){
-                                        layui.table.reload(reload_id);
+                                        layui.{$this->js_class}.reload(reload_id);
                                     }
                                 }else{
                                     layer.msg(res.message, {icon: 3});
@@ -490,7 +515,7 @@ class DataGridRender extends Render
 
     protected function  buildDoRequestActionJavascriptFunction(): string
     {
-        $function = "function data_grid_do_request_function(reload_id, title, request){
+        $function = "function {$this->js_class}_data_grid_do_request_function(reload_id, title, request){
 
             url = request.url || '';
             data = request.data || {};
@@ -516,7 +541,7 @@ class DataGridRender extends Render
                         if(res.code === 0){
                             layer.msg(res.message || '操作成功', {icon: 1});
                             if(reload_id){
-                                layui.table.reload(reload_id);
+                                layui.{$this->js_class}.reload(reload_id);
                             }
                         }else{
                             layer.msg(res.message || '操作失败', {icon: 2});
