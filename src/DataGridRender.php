@@ -2,6 +2,7 @@
 
 namespace Nece\WebUi\Layui;
 
+use Nece\WebUi\DataGridColumn;
 use Nece\WebUi\Render;
 
 class DataGridRender extends Render
@@ -104,7 +105,7 @@ class DataGridRender extends Render
                     $this->primary_key = $column->getConfig('field');
                 }
 
-                $template_id = $this->buildColumTemplate($column->getConfig('field'), $column->getConfig('template', ''));
+                $template_id = $this->buildColumTemplate($column);
 
                 $params = [
                     'field' => $column->getConfig('field'),
@@ -369,16 +370,23 @@ class DataGridRender extends Render
         return $json;
     }
 
-    protected function  buildColumTemplate(string $field, string $template)
+    protected function  buildColumTemplate(DataGridColumn $column)
     {
+        $field = $column->getConfig('field');
+        $template = $column->getConfig('template', '');
         if ($template) {
             $id = $this->grid_id . '_column_template_' . $field;
 
-            $pattern = '/({([^{}]+)})/';
-            if (preg_match_all($pattern, $template, $matches)) {
-                foreach ($matches[2] as $i => $name) {
-                    $hold = $matches[0][$i];
-                    $template = str_replace($hold, '{{=d.' . $name . '}}', $template);
+            if ($template == 'switch') {
+                $template = $this->buildSwitchTemplate($column);
+            } else {
+
+                $pattern = '/({([^{}]+)})/';
+                if (preg_match_all($pattern, $template, $matches)) {
+                    foreach ($matches[2] as $i => $name) {
+                        $hold = $matches[0][$i];
+                        $template = str_replace($hold, '{{=d.' . $name . '}}', $template);
+                    }
                 }
             }
 
@@ -589,5 +597,14 @@ class DataGridRender extends Render
         $permission = $this->component->getConfig('permission', []);
 
         return in_array($path, $permission);
+    }
+
+    protected function buildSwitchTemplate(DataGridColumn $column)
+    {
+        $field = $column->getConfig('field');
+        $switch = $column->getConfig('switch', '');
+        $html = '<input type="checkbox" name="status" value="{{= d.' . $field . ' }}" title="' . $switch . '" lay-skin="switch" lay-filter="demo-templet-status" {{= d.' . $field . ' ? "checked" : "" }}>';
+
+        return $html;
     }
 }
