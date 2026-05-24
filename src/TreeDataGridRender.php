@@ -29,7 +29,7 @@ class TreeDataGridRender extends DataGridRender
 
         $tree = [
             'async' => $async ? $async : null,
-            'customName' => $custom_name ? $custom_name : null,
+            'customName' => $custom_name ? $custom_name : null
         ];
 
         $tree = $this->arrayFilter($tree);
