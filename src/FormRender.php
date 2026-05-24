@@ -8,9 +8,11 @@ use Nece\WebUi\Render;
 class FormRender extends Render
 {
     private $hidden_controls = [];
+    private $inline_layout = false;
 
     public function render(): string
     {
+        $this->inline_layout = $this->component->getConfig('inline_layout', false);
         $children = $this->component->getChildren();
 
         $nodes = [];
@@ -20,6 +22,11 @@ class FormRender extends Render
 
         $nodes = array_merge($this->hidden_controls, $nodes);
         $nodes[] = $this->renderButtons();
+
+        if($this->inline_layout){
+            $nodes = $this->renderHtml('div.layui-form-item', [], $nodes);
+        }
+
         return $this->renderHtml('form.layui-form layui-form-pane', $this->component->getAttributes(), $nodes);
     }
 
@@ -32,7 +39,11 @@ class FormRender extends Render
         }
 
         if ($html) {
-            return $this->renderHtml('div.layui-form-item', [], $html);
+            if ($this->inline_layout) {
+                return $this->renderHtml('div.layui-inline', [], $html);
+            } else {
+                return $this->renderHtml('div.layui-form-item', [], $html);
+            }
         }
         return '';
     }
@@ -57,8 +68,13 @@ class FormRender extends Render
         $label = $control->getConfig('label', '');
         if ($label) {
             $nodes[] = $this->renderHtml('label.layui-form-label', ['for' => $control->getId()], $label);
-            $nodes[] = $this->renderHtml('div.layui-input-block', [], $ctl);
-        }else{
+
+            if ($this->inline_layout) {
+                $nodes[] = $this->renderHtml('div.layui-input-inline', [], $ctl);
+            } else {
+                $nodes[] = $this->renderHtml('div.layui-input-block', [], $ctl);
+            }
+        } else {
             $nodes[] = $ctl;
         }
 
@@ -101,7 +117,11 @@ class FormRender extends Render
         }
 
         if ($nodes) {
-            return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
+            if($this->inline_layout){
+                return implode('', $nodes);
+            }else{
+                return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
+            }
         }
         return '';
     }
@@ -171,6 +191,9 @@ class FormRender extends Render
                 $nodes[] = $this->getRender($button)->render();
             }
 
+            if ($this->inline_layout) {
+                return $this->renderHtml('div.layui-inline > div.layui-input-inline', [], $nodes);
+            }
             if ($button_align) {
                 return $this->renderHtml('div.layui-btn-container', ['style' => 'text-align: ' . $button_align . ';'], $nodes);
             }
