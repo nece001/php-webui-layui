@@ -14,6 +14,6 @@ class PanelRender extends Render
         foreach ($children as $child) {
             $nodes[] = $this->getRender($child)->render();
         }
-        return $this->renderHtml('div.layui-panel', [], $nodes);
+        return $this->renderHtml('div.layui-panel', $this->component->getAttributes(), $nodes);
     }
 }
