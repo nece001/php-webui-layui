@@ -67,33 +67,17 @@ class UploadRender extends Render
             'number' => $this->component->getConfig('limit_number'),
             'drag' => $this->component->getConfig('drag'),
             'text' => array_filter($text),
+            'data' => $this->component->getConfig('data', $this->component->getConfig('data_functions')),
+            'choose' => $this->component->getConfig('choose'),
+            'before' => $this->component->getConfig('upload_before'),
+            'progress' => $this->component->getConfig('progress'),
+            'done' => $this->component->getConfig('done'),
+            'allDone' => $this->component->getConfig('all_done'),
+            'error' => $this->component->getConfig('upload_error'),
         ];
 
-        $functions = [
-            'data_function' => $this->component->getConfig('functions.data_function'),
-            'choose_function' => $this->component->getConfig('functions.choose_function'),
-            'before_function' => $this->component->getConfig('functions.upload_before_function'),
-            'progress_function' => $this->component->getConfig('functions.progress_function'),
-            'done_function' => $this->component->getConfig('functions.done_function'),
-            'allDone_function' => $this->component->getConfig('functions.all_done_function'),
-            'error_function' => $this->component->getConfig('functions.upload_error_function'),
-        ];
-
-        $params = array_filter($params, function ($value) {
-            return !is_null($value);
-        });
-        $functions = array_filter($functions);
-
-        foreach ($functions as $key => $function) {
-            $name = str_replace('_function', '', $key);
-            $params[$name] = $key;
-        }
-
-        $params_json = json_encode($params, JSON_UNESCAPED_UNICODE);
-        foreach ($functions as $key => $function) {
-            $name = '"' . $key . '"';
-            $params_json = str_replace($name, $function, $params_json);
-        }
+        $functions = $this->component->getJsFunctions();
+        $params_json = $this->arrayToJavaScriptObject($params, $functions);
 
         $js = "layui.upload.render({$params_json});";
         PageRender::addJavaScriptCode($js);
