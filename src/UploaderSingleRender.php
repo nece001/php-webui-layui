@@ -15,7 +15,7 @@ class UploaderSingleRender extends UploadRender
             if ($accept == 'image') {
                 $nodes[] = $this->renderImagePreview();
             } else {
-                $this->renderFilePreview();
+                $nodes[] = $this->renderFilePreview();
             }
         }
 
@@ -30,6 +30,7 @@ class UploaderSingleRender extends UploadRender
         $this->renderUploadDoneFunction();
         $this->renderUploadErrorFunction();
         $this->renderProgressFunction();
+        $field_name = $this->component->getConfig('field_name');
 
         $html = '
         <div style="width: 132px;">
@@ -40,6 +41,7 @@ class UploaderSingleRender extends UploadRender
             <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="' . $this->uploader_id . '-filter">
                 <div class="layui-progress-bar" lay-percent=""></div>
             </div>
+            <input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input">
         </div>';
 
         return $html;
@@ -65,6 +67,7 @@ class UploaderSingleRender extends UploadRender
 
     private function renderUploadDoneFunction(): void
     {
+        $field_name = $this->component->getConfig('field_name');
         $js = $this->component->getConfig('done_function');
         if (!$js) {
             $js = "
@@ -75,6 +78,8 @@ class UploaderSingleRender extends UploadRender
                     if(res.code > 0){
                         return layui.layer.msg('上传失败');
                     }
+                    
+                    layui.$('#{$this->uploader_id}-upload-input').val(res.data['$field_name']);
                     // 上传成功的一些操作
                     layui.$('#{$this->uploader_id}-upload-text').html(''); // 置空上传失败的状态
                 }";
@@ -114,13 +119,17 @@ class UploaderSingleRender extends UploadRender
         }
     }
 
-    private function renderFilePreview(): void
+    private function renderFilePreview(): string
     {
+        $field_name = $this->component->getConfig('field_name');
         $this->renderFileUploadDoneFunction();
+
+        return '<input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input">';
     }
 
     private function renderFileUploadDoneFunction(): void
     {
+        $field_name = $this->component->getConfig('field_name');
         $js = $this->component->getConfig('done_function');
         if (!$js) {
             $js = "
@@ -132,6 +141,7 @@ class UploaderSingleRender extends UploadRender
                         return layui.layer.msg('上传失败');
                     }
 
+                    layui.$('#{$this->uploader_id}-upload-input').val(res.data['$field_name']);
                     layui.layer.msg('上传完毕', {icon: 1, time: 1000});
                 }";
 
