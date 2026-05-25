@@ -2,8 +2,8 @@
 
 namespace Nece\WebUi\Layui;
 
-use common\Ui\Control;
 use Nece\WebUi\Render;
+use Nece\WebUi\Control;
 
 class FormRender extends Render
 {
@@ -17,13 +17,17 @@ class FormRender extends Render
 
         $nodes = [];
         foreach ($children as $child) {
-            $nodes[] = $this->renderItem($child);
+            if ($child instanceof Control || is_array($child)) {
+                $nodes[] = $this->renderItem($child);
+            }else{
+                $nodes[] = $this->getRender($child)->render();
+            }
         }
 
         $nodes = array_merge($this->hidden_controls, $nodes);
         $nodes[] = $this->renderButtons();
 
-        if($this->inline_layout){
+        if ($this->inline_layout) {
             $nodes = $this->renderHtml('div.layui-form-item', [], $nodes);
         }
 
@@ -117,9 +121,9 @@ class FormRender extends Render
         }
 
         if ($nodes) {
-            if($this->inline_layout){
+            if ($this->inline_layout) {
                 return implode('', $nodes);
-            }else{
+            } else {
                 return $this->renderHtml('div.layui-inline', ['id' => $form_inline_id], $nodes);
             }
         }
