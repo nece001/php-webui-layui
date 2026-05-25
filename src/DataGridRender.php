@@ -463,7 +463,16 @@ class DataGridRender extends Render
                     var iframeWin =  window[layero.find('iframe')[0]['name']];
                     var form = iframeWin.layui.$('form');
 
-                    if(layui.form.validate(form)){
+                    var is_valid = false;
+                    for(var i = 0; i < form.length; i++){
+                        if(layui.form.validate(form[i])){
+                            form = form.eq(i);
+                            is_valid = true;
+                            break;
+                        }
+                    }
+
+                    if(is_valid){
                         var items = form.serializeArray();
 
                         var data = save_data;
