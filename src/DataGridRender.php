@@ -601,9 +601,42 @@ class DataGridRender extends Render
 
     protected function buildSwitchTemplate(DataGridColumn $column)
     {
+        $filter = $column->getId() . '_switch';
         $field = $column->getConfig('field');
         $switch = $column->getConfig('switch', '');
-        $html = '<input type="checkbox" name="status" value="{{= d.' . $field . ' }}" title="' . $switch . '" lay-skin="switch" lay-filter="demo-templet-status" {{= d.' . $field . ' ? "checked" : "" }}>';
+        $action = $column->getConfig('switch_action');
+        $html = '<input type="checkbox" name="' . $field . '" value="{{= d.' . $this->primary_key . ' }}" title="' . $switch . '" lay-skin="switch" lay-filter="' . $filter . '" {{= d.' . $field . ' ? "checked" : "" }}>';
+
+        if ($action) {
+            $param_name = $action->getConfig('param_name', 'id');
+            $js = "layui.form.on('switch(" . $filter . ")', function(obj){
+                var url = '{$action->getConfig('url')}';
+                var method = '{$action->getConfig('method')}';
+                var is_json = '{$action->getConfig('is_json')}';
+
+                var data = {
+                    $param_name : obj.elem.value,
+                    field:obj.elem.name,
+                    value:obj.elem.checked
+                };
+
+                var params = {
+                    url: url,
+                    method: method,
+                    data: data
+                };
+
+                if(is_json){
+                    params.contentType = 'application/json';
+                    params.data = JSON.stringify(data);
+                }
+
+                layui.$.ajax(params);
+                
+            });";
+
+            PageRender::addJavaScriptCode($js);
+        }
 
         return $html;
     }
