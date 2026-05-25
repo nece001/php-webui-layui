@@ -31,17 +31,18 @@ class UploaderSingleRender extends UploadRender
         $this->renderUploadErrorFunction();
         $this->renderProgressFunction();
         $field_name = $this->component->getConfig('field_name');
+        $value = $this->component->getConfig('value');
 
         $html = '
         <div style="width: 132px;">
             <div class="layui-upload-list">
-                <img class="layui-upload-img" id="' . $this->uploader_id . '-upload-img" style="width: 100%; height: 92px;">
+                <img class="layui-upload-img" id="' . $this->uploader_id . '-upload-img" style="width: 100%; height: 92px;" src="' . $value . '">
                 <div id="' . $this->uploader_id . '-upload-text"></div>
             </div>
             <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="' . $this->uploader_id . '-filter">
                 <div class="layui-progress-bar" lay-percent=""></div>
             </div>
-            <input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input">
+            <input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input" value="' . $value . '">
         </div>';
 
         return $html;
@@ -122,9 +123,11 @@ class UploaderSingleRender extends UploadRender
     private function renderFilePreview(): string
     {
         $field_name = $this->component->getConfig('field_name');
+        $value = $this->component->getConfig('value');
+
         $this->renderFileUploadDoneFunction();
 
-        return '<input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input">';
+        return '<input type="hidden" name="' . $field_name . '" id="' . $this->uploader_id . '-upload-input" value="' . $value . '">';
     }
 
     private function renderFileUploadDoneFunction(): void
