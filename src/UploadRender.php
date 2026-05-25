@@ -21,6 +21,8 @@ class UploadRender extends Render
         }
         $nodes[] = $button_text;
 
+        $this->component->setAttribute('type', 'button');
+
         $this->renderJavaScriptCode();
         return $this->renderHtml('button.layui-btn', $this->component->getAttributes(), $nodes);
     }
