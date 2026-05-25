@@ -15,6 +15,9 @@ class SelectRender extends Render
     {
         $options = $this->component->getConfig('options', []);
         $checked = $this->component->getConfig('selected_values', []);
+        $validate = $this->component->getConfig('validate');
+        $verify_type = $this->component->getConfig('validate_type', 'tips');
+        
 
         $opts = [];
         foreach ($options as $key => $data) {
@@ -28,7 +31,15 @@ class SelectRender extends Render
                 $opts[] = $this->renderSelectOption($data, $checked);
             }
         }
-        return $this->renderHtml('select', $this->component->getAttributes(), $opts);
+
+        $attributes = $this->component->getAttributes();
+        if ($validate) {
+            $attributes['lay-verify'] = implode('|', $validate);
+        }
+        if ($verify_type) {
+            $attributes['lay-vertype'] = $verify_type;
+        }
+        return $this->renderHtml('select', $attributes, $opts);
     }
 
     private function renderSelectOption(array $option, array $checked): string
