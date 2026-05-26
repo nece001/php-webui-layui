@@ -12,7 +12,11 @@ class BreadCrumbRender extends Render
 
         $nodes = [];
         foreach ($links as $row) {
-            $nodes[] = $this->renderHtml('a', ['href' => $row['url'], 'class' => 'layui-font-blue layui-font-14 layui-padding-2'], $row['title']);
+            if ($row['url']) {
+                $nodes[] = $this->renderHtml('a', ['href' => $row['url'], 'class' => 'layui-font-blue layui-font-14 layui-padding-2'], $row['title']);
+            } else {
+                $nodes[] = $this->renderHtml('span', ['class' => 'layui-font-blue layui-font-14 layui-padding-2'], $row['title']);
+            }
         }
 
         $html = '/' . implode('/', $nodes);
