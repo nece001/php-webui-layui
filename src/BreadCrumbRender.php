@@ -11,8 +11,9 @@ class BreadCrumbRender extends Render
         $links = $this->component->getConfig('links', []);
 
         $nodes = [];
-        foreach ($links as $row) {
-            if ($row['url']) {
+        $total = count($links) - 1;
+        foreach ($links as $key => $row) {
+            if ($row['url'] && $key < $total) {
                 $nodes[] = $this->renderHtml('a', ['href' => $row['url'], 'class' => 'layui-font-blue layui-font-14 layui-padding-2'], $row['title']);
             } else {
                 $nodes[] = $this->renderHtml('span', ['class' => 'layui-font-blue layui-font-14 layui-padding-2'], $row['title']);
