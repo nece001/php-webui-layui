@@ -167,11 +167,11 @@ class DataGridRender extends Render
             $tools_data = [];
             $buttons = [];
             foreach ($tools as $tool) {
-                $url = $tool->getConfig('url');
+                $url = $tool->getConfig('url', '');
                 $action = $tool->getConfig('action');
                 if ($action) {
                     $event = $action->getConfig('event_name');
-                    $url_path = $action->getConfig('url');
+                    $url = $action->getConfig('url');
                     $tools_data[$event] = $action->toArray();
                 }
 
@@ -271,7 +271,7 @@ class DataGridRender extends Render
                 }
 
                 $action = $button->getConfig('action');
-                $url = $button->getConfig('url');
+                $url = $button->getConfig('url', '');
                 if ($action) {
                     $event = $action->getConfig('event_name');
                     $url = $action->getConfig('url');
