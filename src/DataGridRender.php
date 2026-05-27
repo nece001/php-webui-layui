@@ -240,7 +240,9 @@ class DataGridRender extends Render
 
     protected function  buildOperationTemplate()
     {
+        $permissions = $this->component->getConfig('permissions', []);
         $operations = $this->component->getConfig('operations', []);
+print_r($permissions);
         if ($operations) {
             $this->operation = true;
 
@@ -262,12 +264,17 @@ class DataGridRender extends Render
                     $html = implode('', $tmp);
                 }
 
-                $buttons[] = $html;
-
                 $action = $button->getConfig('action');
+                $url = $button->getConfig('url');
                 if ($action) {
                     $event = $action->getConfig('event_name');
+                    $url = $action->getConfig('url');
                     $operations_data[$event] = $action->toArray();
+                }
+
+                $url_path = parse_url($url, PHP_URL_PATH);
+                if (in_array($url_path, $permissions)) {
+                    $buttons[] = $html;
                 }
             }
             $operations_json = json_encode($operations_data, JSON_UNESCAPED_UNICODE);
