@@ -246,8 +246,23 @@ class DataGridRender extends Render
 
             $operations_data = [];
             $buttons = [];
-            foreach ($operations as $event => $button) {
-                $buttons[] = $this->replaceTemplateVarName($this->getRender($button)->render());
+            foreach ($operations as $row) {
+                $button = $row['button'];
+                $condition = $row['condition'];
+
+                $html = $this->templateReplaceOutput($this->getRender($button)->render());
+                if ($condition) {
+                    $condition = $this->templateReplaceVarName($condition);
+                    $tmp = [
+                        '{{# if (' . $condition . ') { }}',
+                        $html,
+                        '{{# } }}',
+                    ];
+
+                    $html = implode('', $tmp);
+                }
+
+                $buttons[] = $html;
 
                 $action = $button->getConfig('action');
                 if ($action) {
@@ -380,7 +395,7 @@ class DataGridRender extends Render
             if ($template == 'switch') {
                 $template = $this->buildSwitchTemplate($column);
             } else {
-                $template = $this->replaceTemplateVarName($template);
+                $template = $this->templateReplaceOutput($template);
             }
 
             $this->html[] = "<script id='{$id}' type='text/html'>{$template}</script>";
