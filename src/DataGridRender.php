@@ -159,6 +159,7 @@ class DataGridRender extends Render
 
     protected function  buildToolbarTemplate(): void
     {
+        $permissions = $this->component->getConfig('permissions', []);
         $tools = $this->component->getConfig('tools', []);
         if ($tools) {
             $this->toolbar = true;
@@ -166,12 +167,17 @@ class DataGridRender extends Render
             $tools_data = [];
             $buttons = [];
             foreach ($tools as $tool) {
-                $buttons[] = $this->getRender($tool)->render();
-
+                $url = $tool->getConfig('url');
                 $action = $tool->getConfig('action');
                 if ($action) {
                     $event = $action->getConfig('event_name');
+                    $url_path = $action->getConfig('url');
                     $tools_data[$event] = $action->toArray();
+                }
+
+                $url_path = parse_url($url, PHP_URL_PATH);
+                if (in_array($url_path, $permissions)) {
+                    $buttons[] = $this->getRender($tool)->render();
                 }
             }
 
@@ -242,7 +248,7 @@ class DataGridRender extends Render
     {
         $permissions = $this->component->getConfig('permissions', []);
         $operations = $this->component->getConfig('operations', []);
-print_r($permissions);
+
         if ($operations) {
             $this->operation = true;
 
