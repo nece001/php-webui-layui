@@ -31,12 +31,12 @@ class UploaderSingleRender extends UploadRender
         $this->renderUploadErrorFunction();
         $this->renderProgressFunction();
         $field_name = $this->component->getConfig('field_name');
-        $value = $this->component->getConfig('value');
+        $value = $this->component->getConfig('value', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
 
         $html = '
         <div style="width: 132px;">
             <div class="layui-upload-list">
-                <img class="layui-upload-img" id="' . $this->uploader_id . '-upload-img" style="width: 100%; height: 92px;" src="' . $value . '">
+                <img class="layui-upload-img" id="' . $this->uploader_id . '-upload-img" style="width: 100%; height: 92px;border: 1px solid #ccc;" src="' . $value . '">
                 <div id="' . $this->uploader_id . '-upload-text"></div>
             </div>
             <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="' . $this->uploader_id . '-filter">
