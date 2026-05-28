@@ -237,6 +237,8 @@ class DataGridRender extends Render
                             };
 
                             {$this->js_class}_data_grid_open_form_function('{$this->grid_id}', title, request, submit);
+                        }else if(type === 'view'){
+                            {$this->js_class}_data_grid_open_view_function('{$this->grid_id}', title, request);
                         }else{
                             {$this->js_class}_data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
@@ -338,6 +340,8 @@ class DataGridRender extends Render
                             };
 
                             {$this->js_class}_data_grid_open_form_function('{$this->grid_id}', title, request, submit);
+                        }else if(type === 'view'){
+                            {$this->js_class}_data_grid_open_view_function('{$this->grid_id}', title, request);
                         }else{
                             {$this->js_class}_data_grid_do_request_function('{$this->grid_id}', title, request);
                         }
@@ -447,8 +451,36 @@ class DataGridRender extends Render
 
     protected function  buildActionJavascriptFunction(): void
     {
+        $this->javascript[] = $this->buildOpenViewActionJavascriptFunction();
         $this->javascript[] = $this->buildOpenFormActionJavascriptFunction();
         $this->javascript[] = $this->buildDoRequestActionJavascriptFunction();
+    }
+
+    protected function  buildOpenViewActionJavascriptFunction(): string
+    {
+        $function = "function {$this->js_class}_data_grid_open_view_function(reload_id, title, request){
+            var url = request.url || '';
+
+            if(location.search){
+                if(url.indexOf('?') === -1){
+                    url += '?' + location.search.substring(1);
+                }else{
+                    url += '&' + location.search.substring(1);
+                }
+            }
+
+            layer.open({
+                type: 2,
+                area: ['80%', '90%'],
+                content: url,
+                title: title,
+                maxmin: true,
+                shade: 0.6, // 遮罩透明度
+                shadeClose: true, // 点击遮罩区域，关闭弹层
+            });
+        }";
+
+        return $function;
     }
 
     protected function  buildOpenFormActionJavascriptFunction(): string
