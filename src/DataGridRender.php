@@ -160,6 +160,7 @@ class DataGridRender extends Render
     protected function  buildToolbarTemplate(): void
     {
         $permissions = $this->component->getConfig('permissions', []);
+        $check_permission = $this->component->getConfig('check_permission', true);
         $tools = $this->component->getConfig('tools', []);
         if ($tools) {
             $this->toolbar = true;
@@ -175,8 +176,12 @@ class DataGridRender extends Render
                     $tools_data[$event] = $action->toArray();
                 }
 
-                $url_path = parse_url($url, PHP_URL_PATH);
-                if (in_array($url_path, $permissions)) {
+                if ($check_permission) {
+                    $url_path = parse_url($url, PHP_URL_PATH);
+                    if (in_array($url_path, $permissions)) {
+                        $buttons[] = $this->getRender($tool)->render();
+                    }
+                } else {
                     $buttons[] = $this->getRender($tool)->render();
                 }
             }
@@ -247,6 +252,7 @@ class DataGridRender extends Render
     protected function  buildOperationTemplate()
     {
         $permissions = $this->component->getConfig('permissions', []);
+        $check_permission = $this->component->getConfig('check_permission', true);
         $operations = $this->component->getConfig('operations', []);
 
         if ($operations) {
@@ -278,8 +284,12 @@ class DataGridRender extends Render
                     $operations_data[$event] = $action->toArray();
                 }
 
-                $url_path = parse_url($url, PHP_URL_PATH);
-                if (in_array($url_path, $permissions)) {
+                if ($check_permission) {
+                    $url_path = parse_url($url, PHP_URL_PATH);
+                    if (in_array($url_path, $permissions)) {
+                        $buttons[] = $html;
+                    }
+                } else {
                     $buttons[] = $html;
                 }
             }
