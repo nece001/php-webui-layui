@@ -15,7 +15,8 @@ class IconListRender extends Render
         if ($this->bind_id) {
             $this->buildJavascript();
         }
-        return $this->buildHtml();
+        $style = $this->buildStyle();
+        return $this->buildHtml() . $style;
     }
 
     private function buildHtml(): string
@@ -1173,9 +1174,14 @@ class IconListRender extends Render
     <div class="docs-icon-code">&amp;#xe608;</div>
     <div class="docs-icon-fontclass">layui-icon-add-circle-fine</div>
   </div>
-</div>
+</div>';
 
-<style>
+        return $html;
+    }
+
+    private function buildStyle(): string
+    {
+        $style = '<style>
 .ws-docs-icon{
     display: flex;
     flex-wrap: wrap;
@@ -1195,10 +1201,9 @@ class IconListRender extends Render
     .ws-docs-icon > div > i{
         font-size: 24px;
     }
-</style>
-';
+</style>';
 
-        return $html;
+        return $style;
     }
 
     private function buildJavascript(): void
