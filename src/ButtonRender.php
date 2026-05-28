@@ -65,7 +65,7 @@ class ButtonRender extends Render
             $this->component->setAttribute('lay-submit', '');
         }
 
-        if($filter){
+        if ($filter) {
             $this->component->setAttribute('lay-filter', $filter);
         }
 
@@ -102,6 +102,10 @@ class ButtonRender extends Render
 
     private function buildJavascript(): void
     {
+        $countdown = $this->component->getConfig('countdown', []);
+        $countdown_sec = $countdown['countdown'] ?? 0;
+        $countdown_text = $countdown['text'] ?? '秒后重新发送';
+
         $js_action_data = self::getJsActionData();
         $js_action_var_json = '{}';
         if ($js_action_data) {
@@ -130,6 +134,27 @@ class ButtonRender extends Render
                     }
                 }
             }
+
+            var countdown_sec = {$countdown_sec};
+            var countdown_text = '{$countdown_text}';
+            if(countdown_sec > 0){
+                var text = o.val() ? o.val() : o.text();
+                o.disabled = true;
+                o.addClass('layui-btn-disabled');
+
+                var timer = setInterval(function(){
+                    countdown_sec--;
+                    o.text(countdown_sec + countdown_text);
+                    if(countdown_sec <= 0){
+                        clearInterval(timer);
+                        o.text(text);
+                        o.val(text);
+                        o.removeClass('layui-btn-disabled');
+                        o.disabled = false;
+                    }
+                }, 1000);
+            }
+
             buttonDoAction(data);
         }});";
         PageRender::addJavaScriptCode($js, 'buttonDoAction');
