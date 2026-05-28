@@ -645,7 +645,8 @@ class DataGridRender extends Render
         $field = $column->getConfig('field');
         $switch = $column->getConfig('switch', '');
         $action = $column->getConfig('switch_action');
-        $html = '<input type="checkbox" name="' . $field . '" value="{{= d.' . $this->primary_key . ' }}" title="' . $switch . '" lay-skin="switch" lay-filter="' . $filter . '" {{= d.' . $field . ' ? "checked" : "" }}>';
+        $disabled = $action ? '' : ' disabled';
+        $html = '<input type="checkbox" name="' . $field . '" value="{{= d.' . $this->primary_key . ' }}" title="' . $switch . '" lay-skin="switch" lay-filter="' . $filter . '" {{= d.' . $field . ' ? "checked" : "" }}'.$disabled.'>';
 
         if ($action) {
             $param_name = $action->getConfig('param_name', 'id');
