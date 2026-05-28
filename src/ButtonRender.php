@@ -170,9 +170,22 @@ class ButtonRender extends Render
                 buttonDoActionForm(action);
             }else if(type == 'confirm'){
                 buttonDoActionConfirm(action);
+            }else if(type == 'view'){
+                buttonDoActionView(action);
             }else{
                 buttonDoActionAjax(action);
             }
+        }
+        
+        function buttonDoActionView(action){
+            var i = layer.open({
+                type: 2,
+                area: ['80%', '80%'],
+                title: action.title || '',
+                content: action.url || '',
+                maxmin: true,
+                shadeClose: true
+            });
         }
 
         function buttonDoActionForm(action){
