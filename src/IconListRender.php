@@ -1184,10 +1184,12 @@ class IconListRender extends Render
 }
     .ws-docs-icon > div{
         margin: 5px;
+        padding: 10px 0;
         border: 1px solid #ccc;
         text-align: center;
         width: 150px;
         font-size: 12px;
+        cursor: pointer;
     }
 
     .ws-docs-icon > div > i{
@@ -1201,15 +1203,22 @@ class IconListRender extends Render
 
     private function buildJavascript(): void
     {
+        $is_open_window = $this->component->getConfig('is_open_window');
+
         $js = "layui.$('.ws-docs-icon > div').on('click', function(e){
             // console.log(e);
             // console.log(this);
 
+            var is_open_window = {$is_open_window};
             var icon = layui.$(this).find('i').attr('class');
 
-            layui.$('#{$this->bind_id}', parent.document).val(icon);
-
-            parent.layui.layer.closeAll()
+            if(is_open_window){
+                layui.$('#{$this->bind_id}', parent.document).val(icon);
+                parent.layui.layer.closeAll()
+            }else{
+                layui.$('#{$this->bind_id}').val(icon);
+                layui.layer.closeAll();
+            }
         })";
 
         PageRender::addJavaScriptCode($js);
