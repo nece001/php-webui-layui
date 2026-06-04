@@ -63,7 +63,7 @@ class NavRender extends Render
 
         $contents = [];
         if ($icon) {
-            $contents[] = $this->getRender(new Icon($icon))->render();
+            $contents[] = $this->getRender((new Icon($icon))->setClassName('layui-margin-2'))->render();
         }
         if ($image) {
             $contents[] = $this->renderHtml('img', ['src' => $image, 'class' => 'layui-nav-img']);
